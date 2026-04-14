@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -16,12 +16,12 @@
     $(async function(){
 
         // ① titles.jsonを取得
-        let titles = await $.getJSON("/titles.json");
+        let titles = await $.getJSON("https://nestaida4096.github.io/Sabakokoro-Metro-Repo/titles.json");
 
         // ② 現在のパスからキーを決定
         let path = location.pathname;
 
-        // 例: "/about.html" → "about"
+        // 例: "https://nestaida4096.github.io/Sabakokoro-Metro-Repo/about.html" → "about"
         let key = path.replace(".html","");
 
         // ③ タイトル取得
@@ -31,7 +31,7 @@
         }
 
         // ④ head.html取得
-        let data = await $.get("/head.html");
+        let data = await $.get("https://nestaida4096.github.io/Sabakokoro-Metro-Repo/head.html");
 
         // ⑤ タイトル置換
         data = data.replace("%{title}%", title);
@@ -69,13 +69,13 @@
 
     <script>
         $(function(){
-            $("#head").load("/head.html");
+            $("#head").load("https://nestaida4096.github.io/Sabakokoro-Metro-Repo/head.html");
         });
         $(function(){
-            $("#header").load("/header.html");
+            $("#header").load("https://nestaida4096.github.io/Sabakokoro-Metro-Repo/header.html");
         });
         $(function(){
-            $("#footer").load("/footer.html");
+            $("#footer").load("https://nestaida4096.github.io/Sabakokoro-Metro-Repo/footer.html");
         });
     </script>
 
