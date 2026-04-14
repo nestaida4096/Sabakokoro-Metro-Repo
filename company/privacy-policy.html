@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script>
+    $(async function(){
+
+        // ① titles.jsonを取得
+        let titles = await $.getJSON("/titles.json");
+
+        // ② 現在のパスからキーを決定
+        let path = location.pathname;
+
+        // 例: "/about.html" → "about"
+        let key = path.replace(".html","");
+
+        // ③ タイトル取得
+        let title = titles[key] || "";
+        if (title !== "") {
+            title += "｜";
+        }
+
+        // ④ head.html取得
+        let data = await $.get("/head.html");
+
+        // ⑤ タイトル置換
+        data = data.replace("%{title}%", title);
+
+        // ⑥ 追加
+        $("head").append(data);
+
+        // ⑦ script再実行（必要最低限にする）
+        $(data).filter("script[src]").each(function(){
+            let s = document.createElement("script");
+            s.src = this.src;
+            document.head.appendChild(s);
+        });
+
+    });
+    </script>
+</head>
+<body class="bg-white flex flex-col min-h-screen">
+
+    <div id="header"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow">
+        <!-- コンテンツエリア -->
+        <div class="w-full px-6 lg:px-24 py-12 bg-white">
+            <div class="max-w-[1400px] mx-auto">
+                <article id="markdown-content">
+                    <!-- Markdown Content Loaded Here -->
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script>
+        $(function () {
+            $("#header").load("/header.html");
+        });
+        $(function () {
+            $("#footer").load("/footer.html");
+        });
+    </script>
+
+
+    <script>
+        const markdownSource = `
+## 個人情報保護方針
+鯖心メトロ（以下、「当社」といいます。）は、お客様の個人情報を適切に保護することが重要であると考え、以下の方針に基づいて個人情報の保護に努めます。
+### 1. 個人情報の収集と利用
+当社は、お客様から以下の目的で個人情報を収集し、利用します。
+- サービスの提供と運営のため
+- お客様からのお問い合わせへの対応のため
+- サービスの改善のための分析のため
+### 2. 個人情報の第三者提供
+当社は、法令に基づく場合を除き、お客様の個人情報を第三者に提供しません。
+### 3. 個人情報の安全管理
+当社は、お客様の個人情報を安全に管理するために、適切な技術的および組織的な措置を講じます。
+### 4. 個人情報の開示、訂正、削除
+お客様は、当社が保有するお客様の個人情報について、開示、訂正、削除を求めることができます。これらの要求に対して、当社は合理的な期間内に対応します。
+### 5. 法令遵守
+当社は、個人情報の保護に関する法令を遵守し、適切な管理を行います。
+### 6. お問い合わせ
+当社の個人情報保護方針に関するお問い合わせは、以下の連絡先までお願いいたします。
+### 7. 連絡先
+- Discord: aida4646015
+        `;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentArea = document.getElementById('markdown-content');
+
+            const html = marked.parse(markdownSource);
+
+            const container = document.createElement("div");
+            container.innerHTML = html;
+
+            const types = {
+                "[!WARNING]": "warning",
+                "[!NOTE]": "note",
+                "[!TIP]": "tip",
+                "[!IMPORTANT]": "important"
+            };
+
+            container.querySelectorAll("blockquote").forEach(el => {
+                const text = el.textContent.trim();
+
+                for (const key in types) {
+                    if (text.startsWith(key)) {
+                        el.classList.add("alert", types[key]);
+                        el.innerHTML = el.innerHTML.replace(key, "");
+                    }
+                }
+            });
+
+            contentArea.innerHTML = container.innerHTML;
+        });
+
+        new Swiper('.myCarousel', {
+            loop: true,
+            centeredSlides: true,
+            spaceBetween: 20,
+            slidesPerView: 1,
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            breakpoints: {
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+    </script>
+</body>
+</html>

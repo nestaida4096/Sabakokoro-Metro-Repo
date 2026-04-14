@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script>
+    $(async function(){
+
+        // ① titles.jsonを取得
+        let titles = await $.getJSON("/titles.json");
+
+        // ② 現在のパスからキーを決定
+        let path = location.pathname;
+
+        // 例: "/about.html" → "about"
+        let key = path.replace(".html","");
+
+        // ③ タイトル取得
+        let title = titles[key] || "";
+        if (title !== "") {
+            title += "｜";
+        }
+
+        // ④ head.html取得
+        let data = await $.get("/head.html");
+
+        // ⑤ タイトル置換
+        data = data.replace("%{title}%", title);
+
+        // ⑥ 追加
+        $("head").append(data);
+
+        // ⑦ script再実行（必要最低限にする）
+        $(data).filter("script[src]").each(function(){
+            let s = document.createElement("script");
+            s.src = this.src;
+            document.head.appendChild(s);
+        });
+
+    });
+    </script>
+</head>
+<body class="bg-white flex flex-col min-h-screen">
+
+    <div id="header"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow">
+        <!-- コンテンツエリア -->
+        <div class="w-full px-6 lg:px-24 py-12 bg-white">
+            <div class="max-w-[1400px] mx-auto">
+                <article id="markdown-content">
+                    <!-- Markdown Content Loaded Here -->
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script>
+        $(function(){
+            $("#head").load("/head.html");
+        });
+        $(function(){
+            $("#header").load("/header.html");
+        });
+        $(function(){
+            $("#footer").load("/footer.html");
+        });
+    </script>
+
+    <script>
+        const markdownSource = `
+## マーケティング職
+### 職務内容
+- マーケティング職は、鯖心メトロのサービスやブランドを広く知ってもらうための戦略を立案・実行する職種です。主な業務内容は以下の通りです。
+    - 鯖心メトロのサービスやイベントのプロモーション活動を企画・実施する
+    - 広告キャンペーンの企画・運営を行う
+    - SNSやウェブサイトを活用して、鯖心メトロの情報発信を行う
+    - 顧客のニーズや市場動向を分析し、サービス改善や新規サービスの企画に活かす
+### 応募資格
+- 18歳以上で、健康状態が良好な方
+- マーケティングや広告業界での経験がある方が望ましいですが、未経験者も応募可能です。未経験者の場合は、採用後に必要な訓練を受けていただきます。
+- クリエイティブな発想力があり、プロジェクトをリードできる方
+- データ分析能力が高く、マーケティング戦略の立案に活かせる方
+- コミュニケーション能力が高く、チームで協力して業務を行うことができる方
+### 勤務条件
+- 勤務地：鯖心メトロ本部（主にマーケティング部門のオフィス）
+- 勤務時間：シフト制（9:00～18:00の間で、フレックスタイム制もあり）
+- 給与：経験・能力に応じて優遇
+### 応募方法
+- 応募をご希望の方は、履歴書と職務経歴書を添付の上、以下のメールアドレスまでご送付ください。
+- メールアドレス：(募集停止中のため、メールアドレスは非公開とさせていただきます)
+        `;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentArea = document.getElementById('markdown-content');
+
+            const html = marked.parse(markdownSource);
+
+            const container = document.createElement("div");
+            container.innerHTML = html;
+
+            const types = {
+                "[!WARNING]": "warning",
+                "[!NOTE]": "note",
+                "[!TIP]": "tip",
+                "[!IMPORTANT]": "important"
+            };
+
+            container.querySelectorAll("blockquote").forEach(el => {
+                const text = el.textContent.trim();
+
+                for (const key in types) {
+                    if (text.startsWith(key)) {
+                        el.classList.add("alert", types[key]);
+                        el.innerHTML = el.innerHTML.replace(key, "");
+                    }
+                }
+            });
+
+            contentArea.innerHTML = container.innerHTML;
+        });
+
+        new Swiper('.myCarousel', {
+            loop: true,
+            centeredSlides: true,
+            spaceBetween: 20,
+            slidesPerView: 1,
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            breakpoints: {
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+    </script>
+</body>
+</html>

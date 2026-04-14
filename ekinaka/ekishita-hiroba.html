@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script>
+    $(async function(){
+
+        // ① titles.jsonを取得
+        let titles = await $.getJSON("/titles.json");
+
+        // ② 現在のパスからキーを決定
+        let path = location.pathname;
+
+        // 例: "/about.html" → "about"
+        let key = path.replace(".html","");
+
+        // ③ タイトル取得
+        let title = titles[key] || "";
+        if (title !== "") {
+            title += "｜";
+        }
+
+        // ④ head.html取得
+        let data = await $.get("/head.html");
+
+        // ⑤ タイトル置換
+        data = data.replace("%{title}%", title);
+
+        // ⑥ 追加
+        $("head").append(data);
+
+        // ⑦ script再実行（必要最低限にする）
+        $(data).filter("script[src]").each(function(){
+            let s = document.createElement("script");
+            s.src = this.src;
+            document.head.appendChild(s);
+        });
+
+    });
+    </script>
+</head>
+<body class="bg-white flex flex-col min-h-screen">
+
+    <div id="header"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow">
+        <!-- コンテンツエリア -->
+        <div class="w-full px-6 lg:px-24 py-12 bg-white">
+            <div class="max-w-[1400px] mx-auto">
+                <article id="markdown-content">
+                    <!-- Markdown Content Loaded Here -->
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script>
+        $(function(){
+            $("#header").load("/header.html");
+        });
+        $(function(){
+            $("#footer").load("/footer.html");
+        });
+    </script>
+
+    <script>
+        const markdownSource = `
+> このページの内容の一部は、設定上のものです。実際には利用・購入できない場合があります。
+## えきしたひろば
+- えきしたひろばは、新城駅の改札内にあるフリーテナントスペースです。地元の飲食店や雑貨店が期間限定で出店し、駅利用者に新しい発見と楽しみを提供しています。
+- えきしたひろばでは、地元の特産品を使ったスイーツや、季節限定のメニューなど、ここでしか味わえない商品が多数提供されています。駅を利用する際には、ぜひ立ち寄ってみてください。
+## 情報
+- 場所：新城駅高架下改札外
+- 営業時間：10:00～20:00（サーバー運用時間によって変動する場合があります）
+- 備考：店舗によって異なります。詳細は店舗サイトや掲示板をご確認ください。また、イベント開催時には営業時間が変更される場合があります。
+        `;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentArea = document.getElementById('markdown-content');
+
+            const html = marked.parse(markdownSource);
+
+            const container = document.createElement("div");
+            container.innerHTML = html;
+
+            const types = {
+                "[!WARNING]": "warning",
+                "[!NOTE]": "note",
+                "[!TIP]": "tip",
+                "[!IMPORTANT]": "important"
+            };
+
+            container.querySelectorAll("blockquote").forEach(el => {
+                const text = el.textContent.trim();
+
+                for (const key in types) {
+                    if (text.startsWith(key)) {
+                        el.classList.add("alert", types[key]);
+                        el.innerHTML = el.innerHTML.replace(key, "");
+                    }
+                }
+            });
+
+            contentArea.innerHTML = container.innerHTML;
+        });
+
+        new Swiper('.myCarousel', {
+            loop: true,
+            centeredSlides: true,
+            spaceBetween: 20,
+            slidesPerView: 1,
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            breakpoints: {
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+    </script>
+</body>
+</html>

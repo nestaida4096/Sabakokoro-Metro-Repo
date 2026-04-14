@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script>
+    $(async function(){
+
+        // ① titles.jsonを取得
+        let titles = await $.getJSON("/titles.json");
+
+        // ② 現在のパスからキーを決定
+        let path = location.pathname;
+
+        // 例: "/about.html" → "about"
+        let key = path.replace(".html","");
+
+        // ③ タイトル取得
+        let title = titles[key] || "";
+        if (title !== "") {
+            title += "｜";
+        }
+
+        // ④ head.html取得
+        let data = await $.get("/head.html");
+
+        // ⑤ タイトル置換
+        data = data.replace("%{title}%", title);
+
+        // ⑥ 追加
+        $("head").append(data);
+
+        // ⑦ script再実行（必要最低限にする）
+        $(data).filter("script[src]").each(function(){
+            let s = document.createElement("script");
+            s.src = this.src;
+            document.head.appendChild(s);
+        });
+
+    });
+    </script>
+</head>
+<body class="bg-white flex flex-col min-h-screen">
+
+    <div id="header"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow">
+        <!-- コンテンツエリア -->
+        <div class="w-full px-6 lg:px-24 py-12 bg-white">
+            <div class="max-w-[1400px] mx-auto">
+                <article id="markdown-content">
+                    <!-- Markdown Content Loaded Here -->
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script>
+        $(function(){
+            $("#head").load("/head.html");
+        });
+        $(function(){
+            $("#header").load("/header.html");
+        });
+        $(function(){
+            $("#footer").load("/footer.html");
+        });
+    </script>
+
+    <script>
+        const markdownSource = `
+## 臨時運転士
+### 職務内容
+- 臨時運転士は、災害などの緊急時や、ATOの故障などの予期せぬ事態に対応するための職種です。通常はATOによって運行される鯖心メトロの列車を、必要に応じて手動で運転する役割を担います。
+- 臨時運転士は、緊急時に迅速かつ安全に列車を運行するための訓練を受けており、非常時の対応能力が求められます。また、定期的な訓練やシミュレーションを通じて、常に高いレベルの運転技術と安全意識を維持することが求められます。
+### 応募資格
+- 18歳以上で、健康状態が良好な方
+- 鉄道運転士の経験がある方、または鉄道運転士の資格を持っているか、その資格を取得する予定がある方
+- 緊急時の対応能力が高く、冷静に行動できる方
+- 指令の指示に正しく従うことのできる方
+### 勤務条件
+- 勤務地：鯖心特別市の各所（主に東西線と南北線の運行エリア）
+- 勤務時間：シフト制（緊急時には不定期に勤務が発生する可能性があります）
+- 給与：経験・能力に応じて優遇
+- 福利厚生：社会保険完備、交通費支給、社員割引制度、研修制度など
+- 休日：不定期（シフト制のため、勤務状況に応じて変動します）
+### 応募方法
+- 応募をご希望の方は、履歴書と職務経歴書を添付の上、以下のメールアドレスまでご送付ください。
+- メールアドレス：(募集停止中のため、メールアドレスは非公開とさせていただきます)
+        `;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentArea = document.getElementById('markdown-content');
+
+            const html = marked.parse(markdownSource);
+
+            const container = document.createElement("div");
+            container.innerHTML = html;
+
+            const types = {
+                "[!WARNING]": "warning",
+                "[!NOTE]": "note",
+                "[!TIP]": "tip",
+                "[!IMPORTANT]": "important"
+            };
+
+            container.querySelectorAll("blockquote").forEach(el => {
+                const text = el.textContent.trim();
+
+                for (const key in types) {
+                    if (text.startsWith(key)) {
+                        el.classList.add("alert", types[key]);
+                        el.innerHTML = el.innerHTML.replace(key, "");
+                    }
+                }
+            });
+
+            contentArea.innerHTML = container.innerHTML;
+        });
+
+        new Swiper('.myCarousel', {
+            loop: true,
+            centeredSlides: true,
+            spaceBetween: 20,
+            slidesPerView: 1,
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            breakpoints: {
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+    </script>
+</body>
+</html>

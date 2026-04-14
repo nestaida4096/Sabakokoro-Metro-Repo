@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script>
+    $(async function(){
+
+        // ① titles.jsonを取得
+        let titles = await $.getJSON("/titles.json");
+
+        // ② 現在のパスからキーを決定
+        let path = location.pathname;
+
+        // 例: "/about.html" → "about"
+        let key = path.replace(".html","");
+
+        // ③ タイトル取得
+        let title = titles[key] || "";
+        if (title !== "") {
+            title += "｜";
+        }
+
+        // ④ head.html取得
+        let data = await $.get("/head.html");
+
+        // ⑤ タイトル置換
+        data = data.replace("%{title}%", title);
+
+        // ⑥ 追加
+        $("head").append(data);
+
+        // ⑦ script再実行（必要最低限にする）
+        $(data).filter("script[src]").each(function(){
+            let s = document.createElement("script");
+            s.src = this.src;
+            document.head.appendChild(s);
+        });
+
+    });
+    </script>
+</head>
+<body class="bg-white flex flex-col min-h-screen">
+
+    <div id="header"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow">
+        <!-- コンテンツエリア -->
+        <div class="w-full px-6 lg:px-24 py-12 bg-white">
+            <div class="max-w-[1400px] mx-auto">
+                <article id="markdown-content">
+                    <!-- Markdown Content Loaded Here -->
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script>
+        $(function(){
+            $("#head").load("/head.html");
+        });
+        $(function(){
+            $("#header").load("/header.html");
+        });
+        $(function(){
+            $("#footer").load("/footer.html");
+        });
+    </script>
+
+    <script>
+        const markdownSource = `
+## 安全への取り組み
+鯖心メトロでは、お客様の安全を最優先に考え、以下のような取り組みを行っています。
+### 定期的な安全訓練の実施
+全ての従業員は、定期的に安全訓練を受けています。これには、緊急時の対応方法や安全な運行のための手順が含まれます。
+### 最新の安全技術の導入
+鯖心メトロは、最新の安全技術を積極的に導入しています。これには、列車の自動運転システムでの運行などが含まれます。
+### お客様への安全啓発活動
+お客様の安全意識を高めるために、駅や車内での安全啓発活動を行っています。これには、ポスターの掲示やアナウンスによる注意喚起が含まれます。
+### その他、安全に関する取り組みについて不明な点があれば、お気軽にお問い合わせください。
+        `;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentArea = document.getElementById('markdown-content');
+
+            const html = marked.parse(markdownSource);
+
+            const container = document.createElement("div");
+            container.innerHTML = html;
+
+            const types = {
+                "[!WARNING]": "warning",
+                "[!NOTE]": "note",
+                "[!TIP]": "tip",
+                "[!IMPORTANT]": "important"
+            };
+
+            container.querySelectorAll("blockquote").forEach(el => {
+                const text = el.textContent.trim();
+
+                for (const key in types) {
+                    if (text.startsWith(key)) {
+                        el.classList.add("alert", types[key]);
+                        el.innerHTML = el.innerHTML.replace(key, "");
+                    }
+                }
+            });
+
+            contentArea.innerHTML = container.innerHTML;
+        });
+
+        new Swiper('.myCarousel', {
+            loop: true,
+            centeredSlides: true,
+            spaceBetween: 20,
+            slidesPerView: 1,
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            breakpoints: {
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+    </script>
+</body>
+</html>

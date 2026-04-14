@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script>
+    $(async function(){
+
+        // ① titles.jsonを取得
+        let titles = await $.getJSON("/titles.json");
+
+        // ② 現在のパスからキーを決定
+        let path = location.pathname;
+
+        
+        // 例: "/about.html" → "about"
+        let key = path.replace(".html","");
+
+        // ③ タイトル取得
+        let title = titles[key] || "";
+        if (title !== "") {
+            title += "｜";
+        }
+
+        // ④ head.html取得
+        let data = await $.get("/head.html");
+
+        // ⑤ タイトル置換
+        data = data.replace("%{title}%", title);
+
+        // ⑥ 追加
+        $("head").append(data);
+
+        // ⑦ script再実行（必要最低限にする）
+        $(data).filter("script[src]").each(function(){
+            let s = document.createElement("script");
+            s.src = this.src;
+            document.head.appendChild(s);
+        });
+
+    });
+    </script>
+</head>
+<body class="bg-white flex flex-col min-h-screen">
+
+    <div id="header"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow">
+        <!-- コンテンツエリア -->
+        <div class="w-full px-6 lg:px-24 py-12 bg-white">
+            <div class="max-w-[1400px] mx-auto">
+                <article id="markdown-content">
+                    <!-- Markdown Content Loaded Here -->
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script>
+        $(function () {
+            $("#header").load("/header.html");
+        });
+        $(function () {
+            $("#footer").load("/footer.html");
+        });
+    </script>
+
+
+    <script>
+        const markdownSource = `
+> このページの内容の一部は、設定上のものです。
+## リンク
+- [CSR・環境への取り組み](csr.html)
+- [採用情報](/careers)
+## 会社概要
+- 会社名：個人企業鯖心メトロ
+- 代表者：ねすと
+- 設立：2025年12月29日
+- 総路線数：2路線
+- 総駅数：13駅
+- 公式サイト開設：2026年4月14日
+- 総資本：0円
+- 資本構成：全て代表者の自己資金
+- 従業員数：1人（代表者のみ）
+- 車両保有数：東西線用12車両・南北線用1車両
+- 主要取引先：なし（現在は全て自社で運営）
+- 主要顧客層：近隣住民、通勤・通学者、観光客
+- 事業内容：都市鉄道の運営、車内の映像広告スペースの提供、イベントスペースの貸し出し
+## 沿革
+- 2025年12月29日：個人企業鯖心メトロ設立
+- 2026年1月2日：東西線の敷設許可を取得(延伸)
+- 2026年3月30日：南北線の敷設許可を取得
+- 2026年4月14日：公式サイト開設
+## 代表者挨拶
+この度は、鯖心メトロの公式サイトをご覧いただき、誠にありがとうございます。
+
+私は代表のねすとと申します。
+
+鯖心メトロは、地域の皆様に安全で快適な都市鉄道サービスを提供することを使命としています。
+
+私たちは、常にお客様のニーズに耳を傾け、より良いサービスを提供できるよう努めてまいります。
+
+今後とも鯖心メトロをよろしくお願いいたします。
+        `;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentArea = document.getElementById('markdown-content');
+
+            const html = marked.parse(markdownSource);
+
+            const container = document.createElement("div");
+            container.innerHTML = html;
+
+            const types = {
+                "[!WARNING]": "warning",
+                "[!NOTE]": "note",
+                "[!TIP]": "tip",
+                "[!IMPORTANT]": "important"
+            };
+
+            container.querySelectorAll("blockquote").forEach(el => {
+                const text = el.textContent.trim();
+
+                for (const key in types) {
+                    if (text.startsWith(key)) {
+                        el.classList.add("alert", types[key]);
+                        el.innerHTML = el.innerHTML.replace(key, "");
+                    }
+                }
+            });
+
+            contentArea.innerHTML = container.innerHTML;
+        });
+
+        new Swiper('.myCarousel', {
+            loop: true,
+            centeredSlides: true,
+            spaceBetween: 20,
+            slidesPerView: 1,
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            breakpoints: {
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+    </script>
+</body>
+</html>

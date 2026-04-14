@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script>
+    $(async function(){
+
+        // ① titles.jsonを取得
+        let titles = await $.getJSON("/titles.json");
+
+        // ② 現在のパスからキーを決定
+        let path = location.pathname;
+
+        // 例: "/about.html" → "about"
+        let key = path.replace(".html","");
+
+        // ③ タイトル取得
+        let title = titles[key] || "";
+        if (title !== "") {
+            title += "｜";
+        }
+
+        // ④ head.html取得
+        let data = await $.get("/head.html");
+
+        // ⑤ タイトル置換
+        data = data.replace("%{title}%", title);
+
+        // ⑥ 追加
+        $("head").append(data);
+
+        // ⑦ script再実行（必要最低限にする）
+        $(data).filter("script[src]").each(function(){
+            let s = document.createElement("script");
+            s.src = this.src;
+            document.head.appendChild(s);
+        });
+
+    });
+    </script>
+</head>
+<body class="bg-white flex flex-col min-h-screen">
+
+    <div id="header"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow">
+        <!-- ヒーロー -->
+        <section class="hero-section flex items-end pb-16 px-6 lg:px-24">
+            <div class="swiper myCarousel">
+            <div class="swiper-wrapper">
+
+                <div class="swiper-slide">
+                <a href="/company/privacy-policy.html">
+                    <img src="/assets/crousel/1.png">
+                </a>
+                </div>
+
+                <div class="swiper-slide">
+                <a href="/deals.html">
+                    <img src="/assets/crousel/2.png">
+                </a>
+                </div>
+
+                <div class="swiper-slide">
+                <a href="/lost-and-found/index.html">
+                    <img src="/assets/crousel/3.png">
+                </a>
+                </div>
+                
+                <div class="swiper-slide">
+                <a href="/company/privacy-policy.html">
+                    <img src="/assets/crousel/1.png">
+                </a>
+                </div>
+
+                <div class="swiper-slide">
+                <a href="/deals.html">
+                    <img src="/assets/crousel/2.png">
+                </a>
+                </div>
+
+                <div class="swiper-slide">
+                <a href="/lost-and-found/index.html">
+                    <img src="/assets/crousel/3.png">
+                </a>
+                </div>
+            </div>
+
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-pagination"></div>
+            </div>
+        </section>
+
+        <div class="w-full px-6 lg:px-24 py-12">
+            <div class="max-w-[1200px] mx-auto">
+
+                <h2 class="text-2xl font-bold mb-6">お知らせ・ニュースリリース</h2>
+
+                <div id="news-list" class="space-y-4"></div>
+
+            </div>
+        </div>
+
+        <script>
+        (async function(){
+            const container = document.getElementById("news-list");
+
+            // titles.json取得
+            const titles = await fetch("/posts.json").then(r => r.json());
+
+            // キー一覧を日付でソート（降順）
+            const keys = Object.keys(titles).sort((a, b) => {
+                const da = a.match(/\d{4}\d{2}\d{2}/);
+                const db = b.match(/\d{4}\d{2}\d{2}/);
+                return (db?.[0] || "").localeCompare(da?.[0] || "");
+            }).reverse();
+
+            for (const key of keys) {
+                const title = titles[key];
+
+                // 日付抽出
+                const match = key.match(/(\d{4}\d{2}\d{2})/);
+                const date = match ? match[1] : "";
+
+                const url = key + ".html";
+
+                const item = document.createElement("a");
+                item.href = url;
+                item.className = "block border rounded-xl p-4 hover:bg-gray-50 transition";
+
+                item.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="font-semibold text-lg">${title}</div>
+                        <div class="text-sm text-gray-500">${date}</div>
+                    </div>
+                `;
+
+                container.appendChild(item);
+            }
+        })();
+        </script>
+
+        <!-- コンテンツエリア -->
+        <div class="w-full px-6 lg:px-24 py-12 bg-white">
+            <div class="max-w-[1400px] mx-auto">
+                <article id="markdown-content">
+                    <!-- Markdown Content Loaded Here -->
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script>
+        $(function () {
+            $("#header").load("/header.html");
+        });
+        $(function () {
+            $("#footer").load("/footer.html");
+        });
+    </script>
+
+
+    <script>
+        const markdownSource = `
+> [!WARNING]
+> <a href="/traffic.html">遅れ情報については、こちらをご覧ください</a>
+## サバの下を支える地下鉄。
+鯖心メトロは、鯖心特別市の足を支える、大切な交通手段。
+
+そのためには、安全で快適なサービスを提供することが欠かせない。
+
+鯖心メトロは、日々の運行を通じて、地域の人々の生活を支えています。
+## 鯖心メトロの安全への取り組み
+鯖心メトロは、最新の技術を取り入れた安全な車両を導入しています。
+
+自動運転技術や、自動での車内放送など、乗客の安全と快適さを追求しています。
+
+また、鯖心メトロは、環境に配慮した運行を心がけています。電力消費の削減や、再生可能エネルギーの利用など、持続可能な交通手段を目指しています。
+
+詳しくは、[こちら](/faq/safety.html)をご覧ください。
+        `;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentArea = document.getElementById('markdown-content');
+
+            const html = marked.parse(markdownSource);
+
+            const container = document.createElement("div");
+            container.innerHTML = html;
+
+            const types = {
+                "[!WARNING]": "warning",
+                "[!NOTE]": "note",
+                "[!TIP]": "tip",
+                "[!IMPORTANT]": "important"
+            };
+
+            container.querySelectorAll("blockquote").forEach(el => {
+                const text = el.textContent.trim();
+
+                for (const key in types) {
+                    if (text.startsWith(key)) {
+                        el.classList.add("alert", types[key]);
+                        el.innerHTML = el.innerHTML.replace(key, "");
+                    }
+                }
+            });
+
+            contentArea.innerHTML = container.innerHTML;
+        });
+        window.addEventListener('load', () => {
+        new Swiper('.myCarousel', {
+            loop: true,
+            centeredSlides: true,
+            spaceBetween: 20,
+            slidesPerView: 1,
+
+            autoplay: {
+            delay: 3000, // 3秒ごと
+            disableOnInteraction: false, // ユーザー操作後も継続
+            pauseOnMouseEnter: true,
+            },
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            breakpoints: {
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+        });
+    </script>
+</body>
+</html>

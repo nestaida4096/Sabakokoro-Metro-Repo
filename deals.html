@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+    <script>
+    $(async function(){
+
+        // ① titles.jsonを取得
+        let titles = await $.getJSON("/titles.json");
+
+        // ② 現在のパスからキーを決定
+        let path = location.pathname;
+
+        // 例: "/about.html" → "about"
+        let key = path.replace(".html","");
+
+        // ③ タイトル取得
+        let title = titles[key] || "";
+        if (title !== "") {
+            title += "｜";
+        }
+
+        // ④ head.html取得
+        let data = await $.get("/head.html");
+
+        // ⑤ タイトル置換
+        data = data.replace("%{title}%", title);
+
+        // ⑥ 追加
+        $("head").append(data);
+
+        // ⑦ script再実行（必要最低限にする）
+        $(data).filter("script[src]").each(function(){
+            let s = document.createElement("script");
+            s.src = this.src;
+            document.head.appendChild(s);
+        });
+
+    });
+    </script>
+</head>
+<body class="bg-white flex flex-col min-h-screen">
+
+    <div id="header"></div>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow">
+        <!-- コンテンツエリア -->
+        <div class="w-full px-6 lg:px-24 py-12 bg-white">
+            <div class="max-w-[1400px] mx-auto">
+                <article id="markdown-content">
+                    <!-- Markdown Content Loaded Here -->
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script>
+        $(function(){
+            $("#head").load("/head.html");
+        });
+        $(function(){
+            $("#header").load("/header.html");
+        });
+        $(function(){
+            $("#footer").load("/footer.html");
+        });
+    </script>
+
+
+    <script>
+        const markdownSource = `
+> このページの内容の一部は、設定上のものです。実際には利用・購入できない場合があります。
+## 切符について
+各駅では、自動券売機を設置しています。ここでは、ICカードのチャージ、切符の購入ができます。
+
+自動券売機での切符の購入の際、他社の駅名は選択しないでください。正しくご利用できません。
+## 定期券の購入について
+定期券は、お問い合わせセンターへのメール送信によって購入いただきます。
+
+通勤定期券と通学定期券の両方を販売しています。通学定期券は、学生の方が購入できる定期券で、通勤定期券よりも割安な価格設定となっています。通学定期券を購入する際は、学生証などの在学を証明する書類の提出が必要です。
+
+通学定期券を購入するには、当社が指定した学校に在籍していることが条件となります。対象となる学校は、小学校、中学校、高校、大学、専門学校及び専門学校高等課程です。通学定期券の割引率は、課程ごとに異なります。
+
+通勤定期券は、当社が指定した学校に在籍していない方や、会社員が購入できる定期券で、通学定期券よりも割高な価格設定となっています。通勤定期券を購入する際は、勤務先や学校などの情報の提出が必要です。
+
+### 通学定期券の課程ごとの割引率
+- 小学校：小児料金と同額（大人料金の半額）
+- 中学校：20%割引
+- 高校：10%割引
+- 大学・専門学校及び専門学校高等課程：5%割引
+
+### 定期券の購入方法
+定期券の購入をご希望の方は、以下の情報を記載の上、当社のお問い合わせセンターまでご連絡ください。
+- 利用者のお名前
+- 利用者の住所
+- ご連絡先（以下のみ可能）
+   - メールアドレス
+   - 電話番号
+- 定期券の種類（通勤定期、通学定期）
+- 勤務先名や学校名
+- ご利用区間（例：西鯖心駅～新同駅）
+- ご利用開始日
+### 備考
+学生の方は、学生証もご持参ください。
+
+**定期券の購入には、MTTS運営が発行する「MTTSわたしのナンバー」が必要です。お持ちでない方は、発行をお願い致します。**
+
+審査の後、用意ができましたら、ご登録いただいたメールアドレス宛に、定期券の購入方法とお支払い方法についてご案内いたします。
+
+定期券は、購入後に鯖心メトロの有人駅にてお受け取りいただきます。お受け取り可能になるまで2週間程度かかる場合がありますので、余裕をもってお申し込みください。
+
+他社連絡定期券は発売しておりません。ご了承ください。
+
+加山鉄道線に直通する電車をご利用になる場合は、加山鉄道線の定期券を別途ご購入いただく必要があります。
+
+**加山鉄道線に直通する電車をご利用になる場合、新鯖心駅の改札を鯖心メトロの定期券で出場し、同じ駅の改札を加山鉄道線の定期券で再度入場する必要があります。**
+        `;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentArea = document.getElementById('markdown-content');
+
+            const html = marked.parse(markdownSource);
+
+            const container = document.createElement("div");
+            container.innerHTML = html;
+
+            const types = {
+                "[!WARNING]": "warning",
+                "[!NOTE]": "note",
+                "[!TIP]": "tip",
+                "[!IMPORTANT]": "important"
+            };
+
+            container.querySelectorAll("blockquote").forEach(el => {
+                const text = el.textContent.trim();
+
+                for (const key in types) {
+                    if (text.startsWith(key)) {
+                        el.classList.add("alert", types[key]);
+                        el.innerHTML = el.innerHTML.replace(key, "");
+                    }
+                }
+            });
+
+            contentArea.innerHTML = container.innerHTML;
+        });
+
+        new Swiper('.myCarousel', {
+            loop: true,
+            centeredSlides: true,
+            spaceBetween: 20,
+            slidesPerView: 1,
+
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+
+            breakpoints: {
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+    </script>
+</body>
+</html>
